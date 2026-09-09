@@ -1,0 +1,313 @@
+{
+  "name": "TutorBot - Reporte Semanal",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "243eb25a-7484-47f6-889d-cc9615546c25",
+      "name": "Lunes 8 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -224,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORIAS"
+        },
+        "options": {}
+      },
+      "id": "91109bd2-17b7-499d-ba1a-16144927d4c8",
+      "name": "Leer Tutorias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ESTUDIANTES"
+        },
+        "options": {}
+      },
+      "id": "43474952-f38f-41a5-8dca-d9e0552d082d",
+      "name": "Leer Estudiantes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        192
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORES"
+        },
+        "options": {}
+      },
+      "id": "10fc5d14-6642-4454-afbf-447be24dfda1",
+      "name": "Leer Tutores",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        384
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MATERIAS"
+        },
+        "options": {}
+      },
+      "id": "bf79108c-1661-4a19-8af7-70b654a1ab72",
+      "name": "Leer Materias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        576
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "CALIFICACIONES"
+        },
+        "options": {}
+      },
+      "id": "3d7aa500-6614-47b9-9e07-42485a8f8941",
+      "name": "Leer Calificaciones",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        768
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst tutorias = $('Leer Tutorias').all().map(i => i.json).filter(t => t && t.id_tutoria);\nconst estudiantesRaw = $('Leer Estudiantes').all().map(i => i.json).filter(e => e && e.id_estudiante);\nconst tutoresRaw = $('Leer Tutores').all().map(i => i.json).filter(t => t && t.id_tutor);\nconst materiasRaw = $('Leer Materias').all().map(i => i.json).filter(m => m && m.id_materia);\nconst calificaciones = $('Leer Calificaciones').all().map(i => i.json).filter(c => c && c.id_tutoria);\n\nconst dedupe = (arr, key) => { const seen = new Set(); return arr.filter(x => { const k = String(x[key]); if (seen.has(k)) return false; seen.add(k); return true; }); };\nconst estudiantes = dedupe(estudiantesRaw, 'id_estudiante');\nconst tutores = dedupe(tutoresRaw, 'id_tutor');\nconst materias = dedupe(materiasRaw, 'id_materia');\n\nconst LF = String.fromCharCode(10);\n\nconst esManual = $execution.mode === 'manual';\nlet inicioSemana, finSemana, tutoriasSemana;\nlet parseFecha, enSemana;\nparseFecha = f => { try { const p = String(f || '').split('/'); if (p.length < 3) return null; const d = new Date(p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0') + 'T12:00:00'); return isNaN(d.getTime()) ? null : d; } catch (e) { return null; } };\nif (esManual) {\n  inicioSemana = $now.startOf('day');\n  finSemana = $now.endOf('day');\n  tutoriasSemana = tutorias;\n} else {\n  inicioSemana = $now.minus({ days: $now.weekday - 1 }).startOf('day');\n  finSemana = inicioSemana.plus({ days: 6 }).endOf('day');\n  const iniJS = inicioSemana.toJSDate();\n  const finJS = finSemana.toJSDate();\n  enSemana = t => { const d = parseFecha(t.fecha); return d && d >= iniJS && d <= finJS; };\n  tutoriasSemana = tutorias.filter(enSemana);\n}\nconst tituloReporte = esManual ? 'Reporte Actual' : 'Reporte Semanal';\nconst subtituloPeriodo = esManual\n  ? '<strong>Corte:</strong> ' + $now.toFormat('dd/MM/yyyy HH:mm') + ' (todos los registros)'\n  : '<strong>Semana:</strong> ' + inicioSemana.toFormat('dd/MM/yyyy') + ' al ' + finSemana.toFormat('dd/MM/yyyy');\n\nconst estadoDe = t => String(t.estado || 'Solicitada');\nconst sinTutor = t => !t.id_tutor || String(t.id_tutor).trim() === '';\nconst calDe = id => calificaciones.filter(c => String(c.id_tutor) === String(id));\nconst promDe = id => { const cs = calDe(id); return cs.length ? (cs.reduce((a, c) => a + Number(c.valoracion || 0), 0) / cs.length) : null; };\nconst fmtProm = v => v === null ? '—' : v.toFixed(2);\n\nconst porTutor = tutores.map(t => {\n  const ts = tutoriasSemana.filter(x => String(x.id_tutor) === String(t.id_tutor));\n  const prom = promDe(t.id_tutor);\n  return { id: t.id_tutor, nombre: t.nombre, materias: t.materias || '', solicitadas: ts.filter(x => estadoDe(x) === 'Solicitada').length, asignadas: ts.filter(x => estadoDe(x) === 'Asignada').length, enCurso: ts.filter(x => estadoDe(x) === 'En curso').length, finalizadas: ts.filter(x => estadoDe(x) === 'Finalizada').length, canceladas: ts.filter(x => estadoDe(x) === 'Cancelada').length, prom, total: ts.length };\n});\n\nconst ranking = [...porTutor].sort((a, b) => {\n  const sa = (a.prom === null ? 0 : a.prom * 2) + a.finalizadas - a.canceladas;\n  const sb = (b.prom === null ? 0 : b.prom * 2) + b.finalizadas - b.canceladas;\n  return sb - sa;\n});\n\nconst totalSol = tutoriasSemana.length;\nconst totAsig = tutoriasSemana.filter(t => estadoDe(t) === 'Asignada').length;\nconst totEnCurso = tutoriasSemana.filter(t => estadoDe(t) === 'En curso').length;\nconst totFin = tutoriasSemana.filter(t => estadoDe(t) === 'Finalizada').length;\nconst totCan = tutoriasSemana.filter(t => estadoDe(t) === 'Cancelada').length;\nconst totSinTutor = tutoriasSemana.filter(t => sinTutor(t) && estadoDe(t) === 'Solicitada').length;\nconst tutoresActivos = tutores.filter(t => String(t.estado) === 'Activo').length;\nconst valorGeneral = calificaciones.length ? (calificaciones.reduce((a, c) => a + Number(c.valoracion || 0), 0) / calificaciones.length).toFixed(2) : 'N/A';\n\nconst porMateria = materias.map(m => {\n  const ts = tutoriasSemana.filter(x => String(x.id_materia) === String(m.id_materia));\n  return { nombre: m.nombre || m.nombre_materia || m.materia || '', total: ts.length, finalizadas: ts.filter(x => estadoDe(x) === 'Finalizada').length, canceladas: ts.filter(x => estadoDe(x) === 'Cancelada').length, sinTutor: ts.filter(x => sinTutor(x)).length };\n}).filter(m => m.total > 0);\n\nconst alertas = [];\nfor (const t of porTutor) {\n  if (t.canceladas >= 3) alertas.push('⚠️ Tutor ' + t.nombre + ' con ' + t.canceladas + ' cancelaciones' + (esManual ? '' : ' esta semana'));\n  if (t.prom !== null && t.prom < 3.5) alertas.push('⚠️ Tutor ' + t.nombre + ' con valoración baja (' + t.prom.toFixed(2) + ')');\n  if (t.prom !== null && t.prom >= 4.5) alertas.push('🌟 Tutor destacado: ' + t.nombre + ' (' + t.prom.toFixed(2) + ')');\n}\nfor (const m of porMateria) {\n  const tutoresMateria = tutores.filter(t => String(t.materias || '').toLowerCase().includes(m.nombre.toLowerCase()) && String(t.estado) === 'Activo').length;\n  if (m.total >= 3 && tutoresMateria <= 1) alertas.push('⚠️ Materia ' + m.nombre + ' con alta demanda (' + m.total + ') y pocos tutores (' + tutoresMateria + ')');\n  if (m.sinTutor > 0) alertas.push('⚠️ Materia ' + m.nombre + ' con ' + m.sinTutor + ' solicitudes sin tutor');\n}\nif (totSinTutor > 0) alertas.push('⚠️ ' + totSinTutor + ' solicitudes sin tutor asignado');\n\nconst estiloTabla = 'border=\"1\" cellpadding=\"6\" cellspacing=\"0\" style=\"border-collapse:collapse;font-size:13px;width:100%\"';\nconst th = 'style=\"background:#e8e8e8;padding:6px\"';\n\nlet filasTutor = '';\nfor (const t of porTutor) { filasTutor += '<tr><td>' + t.nombre + '</td><td>' + t.materias + '</td><td>' + t.solicitadas + '</td><td>' + t.asignadas + '</td><td>' + t.enCurso + '</td><td>' + t.finalizadas + '</td><td>' + t.canceladas + '</td><td>' + fmtProm(t.prom) + '</td><td>' + t.total + '</td></tr>' + LF; }\nif (!filasTutor) filasTutor = '<tr><td colspan=\"9\">Sin actividad de tutores</td></tr>';\n\nlet filasRanking = '';\nranking.forEach((t, i) => { filasRanking += '<tr><td>' + (i + 1) + '</td><td>' + t.nombre + '</td><td>' + fmtProm(t.prom) + '</td><td>' + t.finalizadas + '</td><td>' + t.canceladas + '</td></tr>' + LF; });\nif (!filasRanking) filasRanking = '<tr><td colspan=\"5\">Sin datos</td></tr>';\n\nlet filasMateria = '';\nfor (const m of porMateria) { filasMateria += '<tr><td>' + m.nombre + '</td><td>' + m.total + '</td><td>' + m.finalizadas + '</td><td>' + m.canceladas + '</td><td>' + m.sinTutor + '</td></tr>' + LF; }\nif (!filasMateria) filasMateria = '<tr><td colspan=\"5\">Sin demanda registrada</td></tr>';\n\nlet listaAlertas = '';\nif (alertas.length === 0) listaAlertas = '<li>✅ Sin alertas</li>';\nfor (const a of alertas) listaAlertas += '<li>' + a + '</li>' + LF;\n\nconst html = '<html><body style=\"font-family:Arial,sans-serif;color:#333;max-width:900px\">'\n  + '<h2>📊 TutorBot — ' + tituloReporte + '</h2>'\n  + '<p>' + subtituloPeriodo + '</p>'\n  + '<h3>1. Resumen general</h3><ul>'\n  + '<li>Total solicitudes: ' + totalSol + '</li>'\n  + '<li>Asignadas: ' + totAsig + ' &nbsp;|&nbsp; En curso: ' + totEnCurso + ' &nbsp;|&nbsp; Finalizadas: ' + totFin + ' &nbsp;|&nbsp; Canceladas: ' + totCan + '</li>'\n  + '<li>Solicitudes sin tutor: ' + totSinTutor + '</li>'\n  + '<li>Tutores activos: ' + tutoresActivos + '</li>'\n  + '<li>Valoración general: ' + valorGeneral + '</li>'\n  + '</ul>'\n  + '<h3>2. Indicadores por tutor</h3>'\n  + '<table ' + estiloTabla + '><thead><tr><th ' + th + '>Tutor</th><th ' + th + '>Materias</th><th ' + th + '>Solicitadas</th><th ' + th + '>Asignadas</th><th ' + th + '>En curso</th><th ' + th + '>Finalizadas</th><th ' + th + '>Canceladas</th><th ' + th + '>Valoración prom.</th><th ' + th + '>Total</th></tr></thead><tbody>' + filasTutor + '</tbody></table>'\n  + '<h3>3. Ranking de tutores</h3>'\n  + '<table ' + estiloTabla + '><thead><tr><th ' + th + '>#</th><th ' + th + '>Tutor</th><th ' + th + '>Valoración</th><th ' + th + '>Finalizadas</th><th ' + th + '>Canceladas</th></tr></thead><tbody>' + filasRanking + '</tbody></table>'\n  + '<h3>4. Demanda por materia</h3>'\n  + '<table ' + estiloTabla + '><thead><tr><th ' + th + '>Materia</th><th ' + th + '>Solicitudes</th><th ' + th + '>Finalizadas</th><th ' + th + '>Canceladas</th><th ' + th + '>Sin tutor</th></tr></thead><tbody>' + filasMateria + '</tbody></table>'\n  + '<h3>5. Alertas administrativas</h3><ul>' + listaAlertas + '</ul>'\n  + '</body></html>';\n\nreturn [{ json: { html, total: totalSol, subject: 'TutorBot - ' + tituloReporte + ' ' + inicioSemana.toFormat('dd/MM/yyyy') } }];\n"
+      },
+      "id": "a9325065-f0f6-4b89-8be1-9ff614adb65c",
+      "name": "Construir Reporte HTML",
+      "typeVersion": 2,
+      "type": "n8n-nodes-base.code",
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "coordinacion@universidad.edu.co",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "TutorBot"
+        }
+      },
+      "id": "da021e03-4f2d-4695-8416-9ce46240df58",
+      "name": "Enviar Reporte",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        0
+      ],
+      "executeOnce": true,
+      "webhookId": "5cf8d739-4211-4948-9096-d356ebf44473",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LlUedMzu3m7x2mv8",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Lunes 8 AM": {
+      "main": [
+        [
+          {
+            "node": "Leer Tutorias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Tutorias": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Estudiantes": {
+      "main": [
+        [
+          {
+            "node": "Leer Tutores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Tutores": {
+      "main": [
+        [
+          {
+            "node": "Leer Materias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Materias": {
+      "main": [
+        [
+          {
+            "node": "Leer Calificaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Calificaciones": {
+      "main": [
+        [
+          {
+            "node": "Construir Reporte HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir Reporte HTML": {
+      "main": [
+        [
+          {
+            "node": "Enviar Reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "b0fbe844-b846-4cb8-9a9c-105953af2381",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "363704f9db5f1a97c9260bfc40c3fcfbd25969b9d93ae82852a647f71591e4eb"
+  },
+  "nodeGroups": [],
+  "id": "QFlEEVhuk4EPLWpv",
+  "tags": []
+}

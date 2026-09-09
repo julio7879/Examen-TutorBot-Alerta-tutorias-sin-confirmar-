@@ -1,0 +1,363 @@
+{
+  "name": "TutorBot - Alerta Tutorias Atascadas",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "a04ac05a-4ffb-47d0-b010-4ebed10c3c25",
+      "name": "Cada 30 Minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORIAS"
+        },
+        "options": {}
+      },
+      "id": "c8075c2f-dc10-4a08-93be-8b0dbdee79ef",
+      "name": "Leer Tutorias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -224,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ESTUDIANTES"
+        },
+        "options": {}
+      },
+      "id": "984840ac-431c-498c-8ca3-90753737eae6",
+      "name": "Leer Estudiantes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        -160
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORES"
+        },
+        "options": {}
+      },
+      "id": "5ad80772-cc78-424e-81e9-812e21fd38ca",
+      "name": "Leer Tutores",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -160
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MATERIAS"
+        },
+        "options": {}
+      },
+      "id": "5898cd8a-9770-4652-a93c-b451f6d057ae",
+      "name": "Leer Materias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        -160
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst AHORA = Date.now();\nconst LIMITE_MINUTOS = 45;\n\nconst tutorias = $('Leer Tutorias').all().map(i => i.json);\nconst estudiantes = $('Leer Estudiantes').all().map(i => i.json);\nconst tutores = $('Leer Tutores').all().map(i => i.json);\nconst materiasRows = $('Leer Materias').all().map(i => i.json);\n\nconst nombreMateria = id => {\n  const m = materiasRows.find(x => String(x.id_materia) === String(id));\n  return m ? (m.nombre || m.nombre_materia || m.materia || String(id)) : String(id);\n};\nconst estudiantePorId = id => estudiantes.find(e => String(e.id_estudiante) === String(id));\nconst tutorPorId = id => tutores.find(t => String(t.id_tutor) === String(id));\n\nconst atascadas = tutorias.filter(t => {\n  const estado = String(t.estado || '').trim();\n  const referencia = t.fecha_asignacion || t.fecha_solicitud;\n  if (!referencia) return false;\n  const creado = new Date(referencia).getTime();\n  if (isNaN(creado)) return false;\n  const diffMinutos = (AHORA - creado) / 60000;\n  return estado === 'Asignada' && diffMinutos > LIMITE_MINUTOS;\n});\n\nreturn atascadas.map(t => {\n  const est = estudiantePorId(t.id_estudiante);\n  const tut = tutorPorId(t.id_tutor);\n  const referencia = t.fecha_asignacion || t.fecha_solicitud;\n  const minutos = Math.floor((AHORA - new Date(referencia).getTime()) / 60000);\n  return {\n    json: {\n      id_tutoria: t.id_tutoria,\n      materia: t.materia || nombreMateria(t.id_materia),\n      id_estudiante: t.id_estudiante,\n      estudiante: est ? est.nombre : String(t.id_estudiante || 'N/D'),\n      id_tutor: t.id_tutor,\n      tutor: tut ? tut.nombre : (t.id_tutor || 'Sin asignar'),\n      fecha: t.fecha || '',\n      horario: (t.hora_inicio || '') + ' - ' + (t.hora_fin || ''),\n      minutos_retraso: minutos,\n      fecha_referencia: referencia\n    }\n  };\n});\n"
+      },
+      "id": "f7518a4f-b124-424e-b5dc-70990ca8ecea",
+      "name": "Filtrar Atascadas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2bc837d9-c09e-4b6d-a320-ebc3db074b10",
+      "name": "Hay Atascadas?",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst items = $input.all();\nif (items.length === 0) return [];\n\nconst ids = items.map(i => i.json.id_tutoria);\nconst idsTexto = ids.join(', ');\n\n// Mensaje sugerido de alerta institucional\nconst mensajeTelegram = '🚨 ATENCIÓN: Las siguientes tutorías llevan más de 45 min sin confirmar: [' + idsTexto + ']. Favor verificar con el tutor/estudiante.';\n\nconst filas = items.map(i => {\n  return '<tr>' +\n    '<td style=\"padding:10px;border:1px solid #e0e0e0;font-weight:bold;color:#2c3e50\">' + i.json.id_tutoria + '</td>' +\n    '<td style=\"padding:10px;border:1px solid #e0e0e0\">' + i.json.materia + '</td>' +\n    '<td style=\"padding:10px;border:1px solid #e0e0e0\">' + i.json.estudiante + '</td>' +\n    '<td style=\"padding:10px;border:1px solid #e0e0e0\">' + i.json.tutor + '</td>' +\n    '<td style=\"padding:10px;border:1px solid #e0e0e0\">' + i.json.fecha + ' (' + i.json.horario + ')</td>' +\n    '<td style=\"padding:10px;border:1px solid #e0e0e0;text-align:center;color:#c0392b;font-weight:bold;background:#fdf2f2\">' + i.json.minutos_retraso + ' min</td>' +\n  '</tr>';\n}).join('');\n\nconst html = '<html><body style=\"font-family:Arial,Helvetica,sans-serif;color:#333;max-width:850px;margin:0 auto;padding:20px;background:#f9f9f9\">' +\n  '<div style=\"background:#c0392b;color:#fff;padding:20px 25px;border-radius:8px 8px 0 0;box-shadow:0 2px 4px rgba(0,0,0,0.1)\">' +\n    '<h2 style=\"margin:0;font-size:20px;letter-spacing:0.5px\">🚨 ALERTA: Tutorías Sin Confirmar (&gt;45 min)</h2>' +\n    '<p style=\"margin:8px 0 0;font-size:13px;opacity:0.95\">TutorBot detectó tutorías en estado <strong>\"Asignada\"</strong> que superan el tiempo límite establecido sin confirmación.</p>' +\n  '</div>' +\n  '<div style=\"background:#ffffff;border:1px solid #e5e5e5;border-top:none;padding:25px;border-radius:0 0 8px 8px;box-shadow:0 2px 4px rgba(0,0,0,0.05)\">' +\n    '<div style=\"background:#fff3cd;border-left:4px solid #ffc107;padding:12px 16px;margin-bottom:20px;border-radius:4px\">' +\n      '<p style=\"margin:0;font-size:14px;color:#856404\"><strong>' + mensajeTelegram + '</strong></p>' +\n    '</div>' +\n    '<p style=\"font-size:14px;color:#555\">Detalle de las <strong>' + items.length + '</strong> tutoría(s) que requieren intervención de coordinación académica:</p>' +\n    '<table style=\"border-collapse:collapse;width:100%;font-size:13px;margin-top:15px\">' +\n      '<thead><tr style=\"background:#2c3e50;color:#ffffff\">' +\n        '<th style=\"padding:10px;border:1px solid #2c3e50;text-align:left\">ID Tutoría</th>' +\n        '<th style=\"padding:10px;border:1px solid #2c3e50;text-align:left\">Materia</th>' +\n        '<th style=\"padding:10px;border:1px solid #2c3e50;text-align:left\">Estudiante</th>' +\n        '<th style=\"padding:10px;border:1px solid #2c3e50;text-align:left\">Tutor</th>' +\n        '<th style=\"padding:10px;border:1px solid #2c3e50;text-align:left\">Fecha / Horario</th>' +\n        '<th style=\"padding:10px;border:1px solid #2c3e50;text-align:center\">Tiempo Transcurrido</th>' +\n      '</tr></thead>' +\n      '<tbody>' + filas + '</tbody>' +\n    '</table>' +\n    '<div style=\"margin-top:25px;padding-top:15px;border-top:1px solid #eee;font-size:11px;color:#888\">' +\n      '<p style=\"margin:0\">🤖 Monitoreo automatizado ejecutado cada 30 minutos por TutorBot.</p>' +\n      '<p style=\"margin:4px 0 0\">Destinatario de coordinación: julioveg567@gmail.com</p>' +\n    '</div>' +\n  '</div>' +\n'</body></html>';\n\nreturn [{\n  json: {\n    asunto: '🚨 TutorBot — ' + items.length + ' tutoría(s) sin confirmar (>45 min)',\n    cuerpo: html,\n    mensajeTelegram: mensajeTelegram,\n    totalAtascadas: items.length,\n    tutoriasIds: ids\n  }\n}];\n"
+      },
+      "id": "75b59843-b7bb-4f11-b5e1-3409849f3f5d",
+      "name": "Formatear Mensaje Alerta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "julioveg567@gmail.com",
+        "subject": "={{ $json.asunto }}",
+        "message": "={{ $json.cuerpo }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "TutorBot Alertas"
+        }
+      },
+      "id": "9a6bcd62-6d6f-418b-8c5a-61636dec2b22",
+      "name": "Enviar Alerta Coordinacion (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        -80
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LlUedMzu3m7x2mv8",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_COORDINACION_CHAT_ID || '11111111' }}",
+        "text": "={{ $json.mensajeTelegram }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "4b68e9f2-2b63-4c91-bce0-68937d11efaa",
+      "name": "Notificar Telegram Coordinacion",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        80
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "l1Rouv5aF0hl7Yk4",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cada 30 Minutos": {
+      "main": [
+        [
+          {
+            "node": "Leer Tutorias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Tutorias": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Estudiantes": {
+      "main": [
+        [
+          {
+            "node": "Leer Tutores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Tutores": {
+      "main": [
+        [
+          {
+            "node": "Leer Materias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Materias": {
+      "main": [
+        [
+          {
+            "node": "Filtrar Atascadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar Atascadas": {
+      "main": [
+        [
+          {
+            "node": "Hay Atascadas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hay Atascadas?": {
+      "main": [
+        [
+          {
+            "node": "Formatear Mensaje Alerta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Mensaje Alerta": {
+      "main": [
+        [
+          {
+            "node": "Enviar Alerta Coordinacion (Gmail)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notificar Telegram Coordinacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "418ca02d-cd51-4ed2-9afd-a3f77ab6b2ec",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "363704f9db5f1a97c9260bfc40c3fcfbd25969b9d93ae82852a647f71591e4eb"
+  },
+  "nodeGroups": [],
+  "id": "XUhR9k38A5OZ3YBw",
+  "tags": []
+}

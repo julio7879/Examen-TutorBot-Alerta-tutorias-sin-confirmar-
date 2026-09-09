@@ -1,0 +1,23 @@
+# Environment variables and secrets
+.env
+.env.local
+*.env
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and databases
+*.log
+*.sqlite
+*.sqlite3
+
+# Node / NPM
+node_modules/
+npm-debug.log*
+
+# Editor directories
+.vscode/
+.idea/
+*.swp

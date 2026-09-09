@@ -1,0 +1,1965 @@
+{
+  "name": "TutorBot - Bot de Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "id": "e2f82f7a-66d8-4d50-a550-8f751616957f",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -896,
+        224
+      ],
+      "webhookId": "a355518a-a6d9-4e03-85eb-1963978c22bf",
+      "credentials": {
+        "telegramApi": {
+          "id": "l1Rouv5aF0hl7Yk4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst item = $input.first().json;\nlet chatId, text, username;\nif (item.message) {\n  chatId = String(item.message.chat.id);\n  text = String(item.message.text || '').trim();\n  username = item.message.from.first_name || '';\n} else if (item.callback_query) {\n  chatId = String(item.callback_query.message.chat.id);\n  text = String(item.callback_query.data || '').trim();\n  username = item.callback_query.from.first_name || '';\n} else {\n  return [];\n}\nreturn [{ json: { chatId, text, username } }];\n"
+      },
+      "id": "83bc6cb9-97c6-4c05-aa55-0556dd847c5e",
+      "name": "Normalizar Entrada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "SESIONES_BOT"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "telegram_id",
+              "lookupValue": "={{ $json.chatId }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "4b09f095-7e50-4d13-8ae8-a16d5bbd7da7",
+      "name": "Leer Sesion",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -448,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst norm = $('Normalizar Entrada').first().json;\nconst sesItems = $input.all();\nlet sesion = { telegram_id: norm.chatId, paso: '', datos: '{}', id_estudiante: '' };\nif (sesItems.length > 0 && sesItems[0].json && sesItems[0].json.telegram_id) {\n  sesion = sesItems[0].json;\n}\nlet datos = {};\ntry { datos = JSON.parse(sesion.datos || '{}'); } catch (e) { datos = {}; }\nreturn [{ json: { chatId: norm.chatId, text: norm.text, username: norm.username, paso: sesion.paso || '', datos, id_estudiante: sesion.id_estudiante || '' } }];\n"
+      },
+      "id": "c95082f7-dde4-456f-8617-72857d731f52",
+      "name": "Cargar Sesion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ESTUDIANTES"
+        },
+        "options": {}
+      },
+      "id": "db080cab-a0bb-47bd-8daa-eb205f6721a5",
+      "name": "Leer Estudiantes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORES"
+        },
+        "options": {}
+      },
+      "id": "9d024b1a-858c-4595-a520-3dbeb67a950e",
+      "name": "Leer Tutores",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        192
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MATERIAS"
+        },
+        "options": {}
+      },
+      "id": "38924127-bba3-40ab-b560-8923336277df",
+      "name": "Leer Materias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        384
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "DISPONIBILIDAD_TUTORES"
+        },
+        "options": {}
+      },
+      "id": "cdb174b5-9416-44b6-a6ec-b0466835fdeb",
+      "name": "Leer Disponibilidad",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        576
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORIAS"
+        },
+        "options": {}
+      },
+      "id": "da9b9aff-f8c8-4ab8-bb76-3e934ed8d612",
+      "name": "Leer Tutorias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        768
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst s = $('Cargar Sesion').first().json;\nconst chatId = s.chatId;\nlet text = s.text;\nlet paso = s.paso || '';\nlet datos = s.datos || {};\n\nconst estudiantes = $('Leer Estudiantes').all().map(i => i.json);\nconst tutores = $('Leer Tutores').all().map(i => i.json);\nconst materiasRows = $('Leer Materias').all().map(i => i.json);\nconst materiaNombre = m => m.nombre || m.nombre_materia || m.materia || '';\nconst materias = materiasRows.map(materiaNombre).filter(Boolean);\nconst materiaNombrePorId = id => { const m = materiasRows.find(x => String(x.id_materia) === String(id)); return m ? materiaNombre(m) : String(id); };\nconst materiaIdPorNombre = nombre => { const m = materiasRows.find(x => materiaNombre(x) === String(nombre)); return m ? m.id_materia : ''; };\nconst disponibilidad = $('Leer Disponibilidad').all().map(i => i.json);\nconst tutorias = $('Leer Tutorias').all().map(i => i.json).map(t => ({ ...t, materia: t.materia || materiaNombrePorId(t.id_materia), horario: t.horario || ((t.hora_inicio || '') + '-' + (t.hora_fin || '')) }));\n\nconst opt = (label, value) => ({ label, value: value === undefined ? label : value });\n\nconst MAIN_OPC = [ opt('📚 Solicitar tutoría'), opt('📅 Mis tutorías'), opt('❌ Cancelar tutoría'), opt('👤 Mi perfil') ];\nconst START_OPC = [ opt('📝 Registrarme'), opt('🔑 Iniciar sesión') ];\nconst CONFIRM_OPC = [ opt('✅ Confirmar'), opt('🔙 Cancelar') ];\n\nconst out = { chatId, reply: '', sesionPaso: paso, sesionDatos: datos, idEstudiante: s.id_estudiante || '', action: 'none', actionData: {} };\nconst setPaso = p => { out.sesionPaso = p; };\n\nconst say = (mensaje, opciones) => {\n  if (opciones && opciones.length) {\n    const listado = opciones.map((o, i) => (i + 1) + '. ' + o.label).join('\\n');\n    out.reply = mensaje + '\\n\\n' + listado + '\\n\\n✏️ Responde con el número de la opción.';\n  } else {\n    out.reply = mensaje;\n  }\n  out.sesionDatos = { ...out.sesionDatos, __opciones: (opciones && opciones.length) ? opciones : [] };\n};\n\nconst opcionesPrevias = Array.isArray(datos.__opciones) ? datos.__opciones : [];\nif (opcionesPrevias.length && /^\\d+$/.test(String(text).trim())) {\n  const idx = parseInt(String(text).trim(), 10) - 1;\n  if (idx >= 0 && idx < opcionesPrevias.length) {\n    text = opcionesPrevias[idx].value;\n  }\n}\n\nconst estudiantePorChat = () => estudiantes.find(e => String(e.telegram_id) === String(chatId));\nconst estudiantePorCedula = c => estudiantes.find(e => String(e.cedula).trim() === String(c).trim());\nconst nextId = (arr, campo, pref) => {\n  let max = 0;\n  for (const r of arr) {\n    const m = String(r[campo] || '').match(/(\\d+)$/);\n    if (m) max = Math.max(max, parseInt(m[1], 10));\n  }\n  return pref + String(max + 1).padStart(3, '0');\n};\nconst horasHasta = (fecha, horario) => {\n  try {\n    const parts = String(fecha).split('/');\n    const d = new Date(parts[2] + '-' + parts[1].padStart(2,'0') + '-' + parts[0].padStart(2,'0') + 'T' + String(horario).split('-')[0].trim() + ':00');\n    return (d.getTime() - Date.now()) / 3600000;\n  } catch (e) { return 999; }\n};\nconst diaSemana = fecha => {\n  try {\n    const parts = String(fecha).split('/');\n    const d = new Date(parts[2] + '-' + parts[1].padStart(2,'0') + '-' + parts[0].padStart(2,'0') + 'T12:00:00');\n    return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][d.getDay()];\n  } catch (e) { return ''; }\n};\n\nconst diasLargo = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];\nconst mesesLargo = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];\nconst horaAmPm = (hhmm) => {\n  const partes = String(hhmm).split(':');\n  const hh = parseInt(partes[0], 10);\n  const mm = partes[1] || '00';\n  const periodo = hh >= 12 ? 'PM' : 'AM';\n  let h12 = hh % 12; if (h12 === 0) h12 = 12;\n  return h12 + ':' + mm + ' ' + periodo;\n};\nconst fechaLarga = (d) => diasLargo[d.getDay()] + ' ' + d.getDate() + ' de ' + mesesLargo[d.getMonth()];\nconst fechaDeDia = (diaNombre) => {\n  const ahora = new Date();\n  const idx = diasLargo.findIndex(x => String(x).toLowerCase() === String(diaNombre).toLowerCase());\n  if (idx < 0) return '';\n  const hoy = ahora.getDay();\n  let diff = idx - hoy;\n  if (diff < 0) diff += 7;\n  const d = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + diff);\n  return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();\n};\nconst ESTADOS_OCUPAN = ['Solicitada','Asignada','En curso','Programada'];\nconst slotLabel = (sl) => {\n  return sl.dia + ' — ' + horaAmPm(sl.hora_inicio) + ' - ' + horaAmPm(sl.hora_fin) + ' (' + sl.tutorNombre + ')';\n};\nconst generarSlots = (materiaTxt) => {\n  const tutoresMateria = tutores.filter(t => String(t.estado) === 'Activo' && String(t.materias || '').toLowerCase().includes(String(materiaTxt).toLowerCase()));\n  if (tutoresMateria.length === 0) return [];\n  const conteo = {};\n  for (const t of tutorias) { if (ESTADOS_OCUPAN.concat(['Finalizada']).includes(String(t.estado))) { conteo[t.id_tutor] = (conteo[t.id_tutor] || 0) + 1; } }\n  const candidatos = [];\n  for (const tutor of tutoresMateria) {\n    const bloques = disponibilidad.filter(x => String(x.id_tutor) === String(tutor.id_tutor) && String(x.estado || 'Disponible') === 'Disponible');\n    for (const bloque of bloques) {\n      const dia = String(bloque.dia_semana || bloque.dia || '');\n      const hi = String(bloque.hora_inicio || '');\n      const hf = String(bloque.hora_fin || '');\n      if (!dia || !hi || !hf) continue;\n      const ocupado = tutorias.some(t => String(t.id_tutor) === String(tutor.id_tutor) && diaSemana(t.fecha) === dia && String(t.hora_inicio || '').trim() === hi.trim() && ESTADOS_OCUPAN.includes(String(t.estado)));\n      if (ocupado) continue;\n      candidatos.push({ id_tutor: tutor.id_tutor, tutorNombre: tutor.nombre, dia, hora_inicio: hi, hora_fin: hf, carga: conteo[tutor.id_tutor] || 0 });\n    }\n  }\n  candidatos.sort((a, b) => {\n    const ia = ['Lunes','Martes','Miércoles','Jueves','Viernes'].indexOf(a.dia);\n    const ib = ['Lunes','Martes','Miércoles','Jueves','Viernes'].indexOf(b.dia);\n    if (ia !== ib) return ia - ib;\n    if (a.hora_inicio !== b.hora_inicio) return a.hora_inicio.localeCompare(b.hora_inicio);\n    return a.carga - b.carga;\n  });\n  return candidatos;\n};\n\nif (estudiantePorChat() && (paso.startsWith('reg_') || paso === 'login_cedula')) { paso = 'autenticado'; out.sesionPaso = 'autenticado'; }\n\nif (text === '/start' || text === '🔙 Cancelar' || text === '🔙 Menú principal' || text === '/menu') {\n  const est = estudiantePorChat();\n  if (est) {\n    out.idEstudiante = est.id_estudiante;\n    setPaso('autenticado');\n    say('🎓 TUTORBOT\\n\\nHola ' + est.nombre + ', ¿qué deseas hacer?', MAIN_OPC);\n  } else {\n    setPaso('');\n    say('👋 ¡Bienvenido a TutorBot!\\n\\nPara comenzar elige una opción:', START_OPC);\n  }\n  out.action = 'saveSession';\n  return [{ json: out }];\n}\n\nif (paso === '' || paso === undefined) {\n  if (text === '📝 Registrarme') {\n    setPaso('reg_nombre'); out.sesionDatos = {};\n    say('📝 REGISTRO\\n\\nEscribe tu nombre completo (solo letras):');\n  } else if (text === '🔑 Iniciar sesión') {\n    setPaso('login_cedula');\n    say('🔑 INICIAR SESIÓN\\n\\nIngresa tu número de cédula:');\n  } else {\n    say('👋 ¡Bienvenido a TutorBot!\\n\\nPara comenzar elige una opción:', START_OPC);\n  }\n  out.action = 'saveSession';\n  return [{ json: out }];\n}\n\nif (paso === 'reg_nombre') {\n  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\\s]{3,80}$/.test(text)) {\n    say('⚠️ Nombre inválido. Solo letras, espacios y acentos. Intenta de nuevo:');\n  } else {\n    datos.nombre = text; out.sesionDatos = datos; setPaso('reg_cedula');\n    say('Gracias, ' + text + '.\\n\\nAhora ingresa tu número de cédula (6 a 10 dígitos):');\n  }\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'reg_cedula') {\n  if (!/^\\d{6,10}$/.test(text)) {\n    say('⚠️ Cédula inválida. Debe ser numérica de 6 a 10 dígitos. Intenta de nuevo:');\n  } else if (estudiantePorCedula(text)) {\n    setPaso(''); out.sesionDatos = {};\n    say('🚫 Esa cédula ya está registrada. Puedes iniciar sesión:', START_OPC);\n  } else {\n    datos.cedula = text; out.sesionDatos = datos; setPaso('reg_correo');\n    say('Ahora ingresa tu correo electrónico:');\n  }\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'reg_correo') {\n  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(text)) {\n    say('⚠️ Correo inválido. Verifica el formato (sin espacios) e intenta de nuevo:');\n  } else if (estudiantes.find(e => String(e.correo).toLowerCase() === text.toLowerCase())) {\n    setPaso(''); out.sesionDatos = {};\n    say('🚫 Ese correo ya está registrado. Puedes iniciar sesión:', START_OPC);\n  } else {\n    datos.correo = text; out.sesionDatos = datos; setPaso('reg_confirmar');\n    say('📋 RESUMEN DE REGISTRO\\n\\n👤 Nombre: ' + datos.nombre + '\\n🪪 Cédula: ' + datos.cedula + '\\n📧 Correo: ' + datos.correo + '\\n\\n¿Confirmas tus datos?', CONFIRM_OPC);\n  }\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'reg_confirmar') {\n  if (text === '✅ Confirmar') {\n    const idEst = nextId(estudiantes, 'id_estudiante', 'EST');\n    out.action = 'registrarEstudiante';\n    out.actionData = { id_estudiante: idEst, nombre: datos.nombre, cedula: datos.cedula, correo: datos.correo, telegram_id: chatId, estado: 'Activo' };\n    out.idEstudiante = idEst;\n    setPaso('autenticado'); out.sesionDatos = {};\n    say('✅ ¡Registro exitoso! Tu ID es ' + idEst + '.\\n\\n🎓 TUTORBOT\\n¿Qué deseas hacer?', MAIN_OPC);\n  } else {\n    setPaso(''); out.sesionDatos = {}; out.action = 'saveSession';\n    say('Registro cancelado. Cuando quieras, elige una opción:', START_OPC);\n  }\n  return [{ json: out }];\n}\n\nif (paso === 'login_cedula') {\n  const est = estudiantePorCedula(text);\n  if (!est) {\n    setPaso(''); out.action = 'saveSession';\n    say('🔍 No encontramos esa cédula. ¿Deseas registrarte?', START_OPC);\n  } else if (String(est.estado) !== 'Activo') {\n    setPaso(''); out.action = 'saveSession';\n    say('⚠️ Tu cuenta está Inactiva. Comunícate con coordinación académica.');\n  } else {\n    if (String(est.telegram_id) !== String(chatId)) {\n      out.action = 'vincularTelegram';\n      out.actionData = { id_estudiante: est.id_estudiante, nombre: est.nombre, cedula: est.cedula, correo: est.correo, telegram_id: chatId, estado: est.estado };\n    } else {\n      out.action = 'saveSession';\n    }\n    out.idEstudiante = est.id_estudiante;\n    setPaso('autenticado'); out.sesionDatos = {};\n    say('👋 Hola de nuevo, ' + est.nombre + '.\\n\\n🎓 TUTORBOT\\n¿Qué deseas hacer?', MAIN_OPC);\n  }\n  return [{ json: out }];\n}\n\nif (text === '📚 Solicitar tutoría') {\n  if (materias.length === 0) {\n    say('⚠️ No hay materias configuradas. Comunícate con coordinación.');\n    out.action = 'saveSession'; return [{ json: out }];\n  }\n  setPaso('sol_materia'); out.sesionDatos = {};\n  const opciones = materias.map(m => opt(m));\n  opciones.push(opt('🔙 Menú principal'));\n  say('📚 SOLICITAR TUTORÍA\\n\\nElige la materia:', opciones);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'sol_materia') {\n  if (!materias.includes(text)) {\n    const opciones = materias.map(m => opt(m)); opciones.push(opt('🔙 Menú principal'));\n    say('⚠️ Opción no válida. Elige la materia:', opciones);\n    out.action = 'saveSession'; return [{ json: out }];\n  }\n  datos.materia = text; out.sesionDatos = datos; setPaso('sol_motivo');\n  const opciones = [opt('📖 Repasar un tema'), opt('❓ Resolver dudas'), opt('📝 Prepararme para un examen'), opt('💻 Ayuda con un proyecto'), opt('📚 Otro motivo'), opt('🔙 Menú principal')];\n  say('Materia: ' + datos.materia + '\\n\\n¿Cuál es el motivo?', opciones);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'sol_motivo') {\n  const validos = ['📖 Repasar un tema','❓ Resolver dudas','📝 Prepararme para un examen','💻 Ayuda con un proyecto','📚 Otro motivo'];\n  if (!validos.includes(text)) {\n    const opciones = validos.map(v => opt(v)); opciones.push(opt('🔙 Menú principal'));\n    say('⚠️ Opción no válida. ¿Cuál es el motivo?', opciones);\n    out.action = 'saveSession'; return [{ json: out }];\n  }\n  datos.motivo = text; out.sesionDatos = datos; setPaso('sol_tema');\n  say('Motivo: ' + datos.motivo + '\\n\\nEscribe el tema específico (ej: Estructuras de datos y listas enlazadas):');\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'sol_tema') {\n  if (text.length < 3) { say('⚠️ Escribe un tema válido:'); out.action = 'saveSession'; return [{ json: out }]; }\n  datos.tema = text; out.sesionDatos = datos;\n  const slots = generarSlots(datos.materia);\n  if (slots.length === 0) {\n    setPaso('autenticado'); out.sesionDatos = {};\n    say('😔 No hay horarios disponibles para ' + datos.materia + ' esta semana (lunes a viernes).\\nIntenta la próxima semana o contacta a coordinación académica.', MAIN_OPC);\n    out.action = 'saveSession'; return [{ json: out }];\n  }\n  setPaso('sol_slot');\n  const opciones = slots.map(sl => opt(slotLabel(sl), JSON.stringify({ id_tutor: sl.id_tutor, dia: sl.dia, hora_inicio: sl.hora_inicio, hora_fin: sl.hora_fin })));\n  opciones.push(opt('🔙 Menú principal'));\n  say('📚 ' + datos.materia + '\\n\\nDisponibilidad del tutor esta semana (lunes a viernes). Selecciona el día y la hora:', opciones);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'sol_slot') {\n  let seleccion = null;\n  try { seleccion = JSON.parse(text); } catch (e) { seleccion = null; }\n  if (!seleccion || !seleccion.id_tutor || !seleccion.dia || !seleccion.hora_inicio || !seleccion.hora_fin) {\n    const slots = generarSlots(datos.materia);\n    if (slots.length === 0) {\n      setPaso('autenticado'); out.sesionDatos = {};\n      say('😔 Ya no hay horarios disponibles para ' + datos.materia + ' esta semana. Intenta más tarde.', MAIN_OPC);\n      out.action = 'saveSession'; return [{ json: out }];\n    }\n    const opciones = slots.map(sl => opt(slotLabel(sl), JSON.stringify({ id_tutor: sl.id_tutor, dia: sl.dia, hora_inicio: sl.hora_inicio, hora_fin: sl.hora_fin })));\n    opciones.push(opt('🔙 Menú principal'));\n    say('⚠️ Opción no válida. Selecciona un día y hora disponibles:', opciones);\n    out.action = 'saveSession'; return [{ json: out }];\n  }\n  const fechaSel = fechaDeDia(seleccion.dia);\n  datos.id_tutor_slot = seleccion.id_tutor;\n  datos.dia = seleccion.dia;\n  datos.fecha = fechaSel;\n  datos.hora_inicio = seleccion.hora_inicio;\n  datos.hora_fin = seleccion.hora_fin;\n  out.sesionDatos = datos;\n  setPaso('sol_confirmar');\n  const horaIniTxt = horaAmPm(seleccion.hora_inicio);\n  const horaFinTxt = horaAmPm(seleccion.hora_fin);\n  say('📋 RESUMEN DE TU SOLICITUD\\n\\n📚 Materia: ' + datos.materia + '\\n📝 Motivo: ' + datos.motivo + '\\n📌 Tema: ' + datos.tema + '\\n📅 Día: ' + seleccion.dia + '\\n🕙 Horario: ' + horaIniTxt + ' – ' + horaFinTxt + '\\n\\n¿Deseas enviar esta solicitud?', CONFIRM_OPC);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'sol_confirmar') {\n  if (text !== '✅ Confirmar') {\n    setPaso('autenticado'); out.sesionDatos = {}; out.action = 'saveSession';\n    say('Solicitud cancelada.\\n\\n🎓 TUTORBOT\\n¿Qué deseas hacer?', MAIN_OPC);\n    return [{ json: out }];\n  }\n  const est = estudiantePorChat();\n  const idSol = nextId(tutorias, 'id_tutoria', 'SOL');\n  const idMateria = materiaIdPorNombre(datos.materia);\n  const ahora = $now.toISO();\n  const tutorElegido = tutores.find(t => String(t.id_tutor) === String(datos.id_tutor_slot));\n  const sigueLibre = !!tutorElegido && !tutorias.some(t => String(t.id_tutor) === String(datos.id_tutor_slot) && diaSemana(t.fecha) === datos.dia && String(t.hora_inicio || '').trim() === String(datos.hora_inicio).trim() && ESTADOS_OCUPAN.includes(String(t.estado)));\n\n  if (sigueLibre) {\n    out.action = 'crearTutoriaAsignada';\n    out.actionData = {\n      tutoria: { id_tutoria: idSol, id_estudiante: est.id_estudiante, id_tutor: tutorElegido.id_tutor, id_materia: idMateria, materia: datos.materia, motivo: datos.motivo, tema: datos.tema, fecha: datos.fecha, hora_inicio: datos.hora_inicio, hora_fin: datos.hora_fin, estado: 'Asignada', fecha_solicitud: ahora, fecha_asignacion: ahora },\n      tutorChatId: String(tutorElegido.telegram_id || ''),\n      tutorNombre: tutorElegido.nombre,\n      estudianteNombre: est.nombre,\n    };\n    setPaso('autenticado'); out.sesionDatos = {};\n    const horaIniTxt = horaAmPm(datos.hora_inicio);\n    const horaFinTxt = horaAmPm(datos.hora_fin);\n    say('✅ ¡Tutoría asignada!\\n\\n🟢 ' + datos.materia + '\\n👩‍🏫 Tutor: ' + tutorElegido.nombre + '\\n📅 ' + datos.dia + '\\n🕙 ' + horaIniTxt + ' – ' + horaFinTxt + '\\n📌 Estado: Asignada\\n🆔 ' + idSol, MAIN_OPC);\n  } else {\n    out.action = 'crearTutoriaSolicitada';\n    out.actionData = {\n      tutoria: { id_tutoria: idSol, id_estudiante: est.id_estudiante, id_tutor: '', id_materia: idMateria, motivo: datos.motivo, tema: datos.tema, fecha: datos.fecha, hora_inicio: datos.hora_inicio, hora_fin: datos.hora_fin, estado: 'Solicitada', fecha_solicitud: ahora, fecha_asignacion: '' },\n    };\n    setPaso('autenticado'); out.sesionDatos = {};\n    say('😔 Justo se ocupó ese horario mientras decidías. Tu solicitud quedó registrada como Solicitada (' + idSol + ') para que coordinación la reasigne.\\n\\nPuedes intentar solicitar otra tutoría desde el menú.', MAIN_OPC);\n  }\n  return [{ json: out }];\n}\n\nif (text === '📅 Mis tutorías') {\n  const est = estudiantePorChat();\n  const mias = tutorias.filter(t => String(t.id_estudiante) === String(est ? est.id_estudiante : '') && ['Solicitada','Asignada','En curso'].includes(String(t.estado)));\n  if (mias.length === 0) {\n    say('📅 No tienes tutorías activas por ahora.', MAIN_OPC);\n  } else {\n    let msg = '📅 MIS TUTORÍAS\\n';\n    for (const t of mias) {\n      const tutor = tutores.find(x => String(x.id_tutor) === String(t.id_tutor));\n      const icono = t.estado === 'Asignada' ? '🟢' : (t.estado === 'En curso' ? '🔵' : '🟡');\n      msg += '\\n' + icono + ' ' + t.materia + ' (' + t.id_tutoria + ')\\n';\n      msg += t.estado === 'Solicitada' ? '⏳ Buscando tutor...\\n' : '👩‍🏫 ' + (tutor ? tutor.nombre : 'Por asignar') + '\\n';\n      msg += '📅 ' + t.fecha + '  🕙 ' + t.horario + '\\n📌 ' + t.estado + '\\n';\n    }\n    say(msg, MAIN_OPC);\n  }\n  out.action = 'saveSession'; return [{ json: out }];\n}\n\nif (text === '❌ Cancelar tutoría') {\n  const est = estudiantePorChat();\n  const cancelables = tutorias.filter(t => String(t.id_estudiante) === String(est ? est.id_estudiante : '') && ['Solicitada','Asignada'].includes(String(t.estado)));\n  if (cancelables.length === 0) {\n    say('❌ No tienes tutorías que puedas cancelar.', MAIN_OPC);\n    out.action = 'saveSession'; return [{ json: out }];\n  }\n  setPaso('can_elegir');\n  const opciones = cancelables.map(t => opt(t.materia + ' ' + t.fecha + ' ' + t.horario + ' (' + t.id_tutoria + ')', t.id_tutoria));\n  opciones.push(opt('🔙 Menú principal'));\n  say('❌ CANCELAR TUTORÍA\\n\\nElige la tutoría a cancelar:', opciones);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'can_elegir') {\n  const t = tutorias.find(x => String(x.id_tutoria) === String(text));\n  if (!t) {\n    say('⚠️ Opción no válida. Responde con el número de la tutoría, o escribe /menu para salir.');\n    out.action = 'saveSession'; return [{ json: out }];\n  }\n  datos.cancelar_id = t.id_tutoria; out.sesionDatos = datos; setPaso('can_confirmar');\n  const tutor = tutores.find(x => String(x.id_tutor) === String(t.id_tutor));\n  say('📋 ¿Cancelar esta tutoría?\\n\\n📚 ' + t.materia + '\\n👩‍🏫 ' + (tutor ? tutor.nombre : 'Por asignar') + '\\n📅 ' + t.fecha + '\\n🕙 ' + t.horario + '\\n📌 ' + t.estado, CONFIRM_OPC);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'can_confirmar' && text === '✅ Confirmar') {\n  const t = tutorias.find(x => String(x.id_tutoria) === datos.cancelar_id);\n  setPaso('autenticado'); out.sesionDatos = {};\n  if (!t) { say('No se encontró la tutoría.', MAIN_OPC); out.action = 'saveSession'; return [{ json: out }]; }\n  if (String(t.estado) === 'Asignada' && horasHasta(t.fecha, t.horario) < 4) {\n    say('⛔ Ya no es posible cancelarla: faltan menos de 4 horas para su inicio.', MAIN_OPC);\n    out.action = 'saveSession'; return [{ json: out }];\n  }\n  const tutor = tutores.find(x => String(x.id_tutor) === String(t.id_tutor));\n  out.action = 'cancelarTutoria';\n  out.actionData = { id_tutoria: t.id_tutoria, materia: t.materia, fecha: t.fecha, horario: t.horario, tutorChatId: tutor ? String(tutor.telegram_id || '') : '', tutorNombre: tutor ? tutor.nombre : '' };\n  say('✅ Tutoría ' + t.id_tutoria + ' cancelada. El horario del tutor vuelve a estar disponible.', MAIN_OPC);\n  return [{ json: out }];\n}\nif (paso === 'can_confirmar') {\n  setPaso('autenticado'); out.sesionDatos = {}; out.action = 'saveSession';\n  say('Cancelación abortada.\\n\\n🎓 TUTORBOT\\n¿Qué deseas hacer?', MAIN_OPC);\n  return [{ json: out }];\n}\n\nif (text === '👤 Mi perfil') {\n  const est = estudiantePorChat();\n  if (!est) { say('No encontramos tu perfil.', START_OPC); out.action = 'saveSession'; return [{ json: out }]; }\n  say('👤 MI PERFIL\\n\\n🆔 ID: ' + est.id_estudiante + '\\n👤 Nombre: ' + est.nombre + '\\n🪪 Cédula: ' + est.cedula + '\\n📧 Correo: ' + est.correo + '\\n📱 Telegram: Vinculado\\n🟢 Estado: ' + est.estado, [ opt('✏️ Editar nombre'), opt('✏️ Editar correo'), opt('🔙 Menú principal') ]);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (text === '✏️ Editar nombre') {\n  setPaso('perfil_nombre');\n  say('✏️ Escribe tu nuevo nombre completo:');\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'perfil_nombre') {\n  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\\s]{3,80}$/.test(text)) { say('⚠️ Nombre inválido. Intenta de nuevo:'); out.action = 'saveSession'; return [{ json: out }]; }\n  datos.nuevo_nombre = text; out.sesionDatos = datos; setPaso('perfil_nombre_conf');\n  say('📋 ¿Confirmas tu nuevo nombre?\\n\\n👤 ' + text, CONFIRM_OPC);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'perfil_nombre_conf' && text === '✅ Confirmar') {\n  const est = estudiantePorChat();\n  out.action = 'actualizarPerfil';\n  out.actionData = { id_estudiante: est.id_estudiante, nombre: datos.nuevo_nombre, cedula: est.cedula, correo: est.correo, telegram_id: chatId, estado: est.estado };\n  setPaso('autenticado'); out.sesionDatos = {};\n  say('✅ Nombre actualizado a: ' + datos.nuevo_nombre, MAIN_OPC);\n  return [{ json: out }];\n}\nif (paso === 'perfil_nombre_conf') {\n  setPaso('autenticado'); out.sesionDatos = {}; out.action = 'saveSession';\n  say('Cambio de nombre cancelado.\\n\\n🎓 TUTORBOT\\n¿Qué deseas hacer?', MAIN_OPC);\n  return [{ json: out }];\n}\nif (text === '✏️ Editar correo') {\n  setPaso('perfil_correo');\n  say('✏️ Escribe tu nuevo correo electrónico:');\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'perfil_correo') {\n  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(text)) { say('⚠️ Correo inválido. Intenta de nuevo:'); out.action = 'saveSession'; return [{ json: out }]; }\n  datos.nuevo_correo = text; out.sesionDatos = datos; setPaso('perfil_correo_conf');\n  say('📋 ¿Confirmas tu nuevo correo?\\n\\n📧 ' + text, CONFIRM_OPC);\n  out.action = 'saveSession'; return [{ json: out }];\n}\nif (paso === 'perfil_correo_conf' && text === '✅ Confirmar') {\n  const est = estudiantePorChat();\n  out.action = 'actualizarPerfil';\n  out.actionData = { id_estudiante: est.id_estudiante, nombre: est.nombre, cedula: est.cedula, correo: datos.nuevo_correo, telegram_id: chatId, estado: est.estado };\n  setPaso('autenticado'); out.sesionDatos = {};\n  say('✅ Correo actualizado a: ' + datos.nuevo_correo, MAIN_OPC);\n  return [{ json: out }];\n}\nif (paso === 'perfil_correo_conf') {\n  setPaso('autenticado'); out.sesionDatos = {}; out.action = 'saveSession';\n  say('Cambio de correo cancelado.\\n\\n🎓 TUTORBOT\\n¿Qué deseas hacer?', MAIN_OPC);\n  return [{ json: out }];\n}\n\nif (paso === 'esperando_calificacion') {\n  const est = estudiantePorChat();\n  if (text === '⏭️ Omitir') {\n    setPaso('autenticado'); out.sesionDatos = {}; out.action = 'saveSession';\n    say('Gracias por usar TutorBot.', MAIN_OPC);\n    return [{ json: out }];\n  }\n  if (/^[1-5]$/.test(text)) {\n    const t = tutorias.find(x => String(x.id_tutoria) === String(datos.calificando_id));\n    const idCal = 'CAL' + String(Date.now()).slice(-6);\n    out.action = 'guardarCalificacion';\n    out.actionData = {\n      calificacion: { id_calificacion: idCal, id_tutoria: datos.calificando_id, id_estudiante: est ? est.id_estudiante : '', id_tutor: t ? t.id_tutor : '', valoracion: text, comentario: '', fecha_calificacion: $now.toISO() },\n    };\n    setPaso('autenticado'); out.sesionDatos = {};\n    say('✅ ¡Gracias por tu calificación de ' + text + ' estrellas!', MAIN_OPC);\n    return [{ json: out }];\n  }\n  say('Por favor elige una opción:', [ opt('⭐1','1'), opt('⭐2','2'), opt('⭐3','3'), opt('⭐4','4'), opt('⭐5','5'), opt('⏭️ Omitir') ]);\n  out.action = 'saveSession';\n  return [{ json: out }];\n}\n\nsay('No entendí tu mensaje. Responde con el número de una opción, o escribe /menu para volver.\\n\\n🎓 TUTORBOT', MAIN_OPC);\nout.action = 'saveSession';\nreturn [{ json: out }];\n"
+      },
+      "id": "5440cf07-a891-4197-887d-5a2af6c48035",
+      "name": "Logica Bot",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a1",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "registrarEstudiante",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a2",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "vincularTelegram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a3",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "crearTutoriaAsignada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a4",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "crearTutoriaSolicitada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a5",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "cancelarTutoria",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a6",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "actualizarPerfil",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a7",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "guardarCalificacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a8",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "saveSession",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c8ae36d3-7fbb-411e-aa61-57f7cc815469",
+      "name": "Router Acciones",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        224,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ESTUDIANTES"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_estudiante": "={{ $json.actionData.id_estudiante }}",
+            "nombre": "={{ $json.actionData.nombre }}",
+            "cedula": "={{ $json.actionData.cedula }}",
+            "correo": "={{ $json.actionData.correo }}",
+            "telegram_id": "={{ $json.actionData.telegram_id }}",
+            "estado": "={{ $json.actionData.estado }}"
+          },
+          "schema": [
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "cedula",
+              "displayName": "cedula",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_estudiante"
+          ]
+        },
+        "options": {}
+      },
+      "id": "2a2f9ee7-ea46-4b24-bb6c-0fff33c4be3b",
+      "name": "Guardar Estudiante",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        128
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "SESIONES_BOT"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $('Logica Bot').first().json.chatId }}",
+            "paso": "={{ $('Logica Bot').first().json.sesionPaso }}",
+            "datos": "={{ JSON.stringify($('Logica Bot').first().json.sesionDatos) }}",
+            "id_estudiante": "={{ $('Logica Bot').first().json.idEstudiante }}"
+          },
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "paso",
+              "displayName": "paso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "datos",
+              "displayName": "datos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "telegram_id"
+          ]
+        },
+        "options": {}
+      },
+      "id": "99a5d35d-d79b-4306-823d-cabbf30b0707",
+      "name": "Guardar Sesion",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        704
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Logica Bot').first().json.chatId }}",
+        "text": "={{ $('Logica Bot').first().json.reply }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "9b4584ba-28d0-4929-869d-86d8207b014d",
+      "name": "Responder Mensaje",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        736
+      ],
+      "webhookId": "883d017b-dfa5-4801-b586-8ae31570517e",
+      "credentials": {
+        "telegramApi": {
+          "id": "l1Rouv5aF0hl7Yk4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ESTUDIANTES"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_estudiante": "={{ $json.actionData.id_estudiante }}",
+            "nombre": "={{ $json.actionData.nombre }}",
+            "cedula": "={{ $json.actionData.cedula }}",
+            "correo": "={{ $json.actionData.correo }}",
+            "telegram_id": "={{ $json.actionData.telegram_id }}",
+            "estado": "={{ $json.actionData.estado }}"
+          },
+          "schema": [
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "cedula",
+              "displayName": "cedula",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_estudiante"
+          ]
+        },
+        "options": {}
+      },
+      "id": "9d7fae36-2caf-4f97-9ce6-be5552c8817e",
+      "name": "Vincular Telegram",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        512
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORIAS"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_tutoria": "={{ $json.actionData.tutoria.id_tutoria }}",
+            "id_estudiante": "={{ $json.actionData.tutoria.id_estudiante }}",
+            "id_tutor": "={{ $json.actionData.tutoria.id_tutor }}",
+            "id_materia": "={{ $json.actionData.tutoria.id_materia }}",
+            "motivo": "={{ $json.actionData.tutoria.motivo }}",
+            "tema": "={{ $json.actionData.tutoria.tema }}",
+            "fecha": "={{ $json.actionData.tutoria.fecha }}",
+            "hora_inicio": "={{ $json.actionData.tutoria.hora_inicio }}",
+            "hora_fin": "={{ $json.actionData.tutoria.hora_fin }}",
+            "estado": "={{ $json.actionData.tutoria.estado }}",
+            "fecha_solicitud": "={{ $json.actionData.tutoria.fecha_solicitud }}",
+            "fecha_asignacion": "={{ $json.actionData.tutoria.fecha_asignacion }}"
+          },
+          "schema": [
+            {
+              "id": "id_tutoria",
+              "displayName": "id_tutoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_tutor",
+              "displayName": "id_tutor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_materia",
+              "displayName": "id_materia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "motivo",
+              "displayName": "motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "tema",
+              "displayName": "tema",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "hora_inicio",
+              "displayName": "hora_inicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "hora_fin",
+              "displayName": "hora_fin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha_solicitud",
+              "displayName": "fecha_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha_asignacion",
+              "displayName": "fecha_asignacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_tutoria"
+          ]
+        },
+        "options": {}
+      },
+      "id": "835720cc-7a7e-4d8a-b1ff-6956673a7396",
+      "name": "Crear Tutoria",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        704
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fa",
+              "leftValue": "={{ $('Logica Bot').first().json.action }}",
+              "rightValue": "crearTutoriaAsignada",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e7c83b53-2180-4b34-b47e-c9a39495f1da",
+      "name": "Solo Asignada",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        448,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Logica Bot').first().json.actionData.tutorChatId }}",
+        "text": "={{ \"🔔 Nueva tutoría asignada\\n\\n📚 \" + $('Logica Bot').first().json.actionData.tutoria.materia + \"\\n👤 Estudiante: \" + $('Logica Bot').first().json.actionData.estudianteNombre + \"\\n📝 Tema: \" + $('Logica Bot').first().json.actionData.tutoria.tema + \"\\n📅 \" + $('Logica Bot').first().json.actionData.tutoria.fecha + \"\\n🕙 \" + $('Logica Bot').first().json.actionData.tutoria.hora_inicio + \"-\" + $('Logica Bot').first().json.actionData.tutoria.hora_fin }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "e8a14677-b449-4241-b452-f3da4456fb7e",
+      "name": "Notificar Tutor Asignacion",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        560
+      ],
+      "webhookId": "59dbf527-c245-401d-9973-0d105a0a0e66",
+      "credentials": {
+        "telegramApi": {
+          "id": "l1Rouv5aF0hl7Yk4",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "id": "3f76b781-7d56-4bfd-a381-39d323060ad8",
+      "name": "Limit Tutor Asignacion",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        896,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst tutoria = $('Logica Bot').first().json.actionData.tutoria || {};\nconst idTutor = String(tutoria.id_tutor || '');\nif (!idTutor) return [];\nconst tutorias = $('Leer Tutorias').all().map(i => i.json).filter(t => String(t.id_tutor) === idTutor);\nconst yaExiste = tutorias.some(t => String(t.id_tutoria) === String(tutoria.id_tutoria));\nlet sol = 0, asig = 0, cur = 0, fin = 0, can = 0;\nfor (const t of tutorias) {\n  const e = String(t.estado);\n  if (e === 'Solicitada') sol++;\n  else if (e === 'Asignada' || e === 'Programada') asig++;\n  else if (e === 'En curso') cur++;\n  else if (e === 'Finalizada') fin++;\n  else if (e === 'Cancelada') can++;\n}\nif (!yaExiste) asig++;\nreturn [{ json: { id_tutor: idTutor, total_solicitadas: sol, total_asignadas: asig, total_en_curso: cur, total_finalizadas: fin, total_canceladas: can } }];\n"
+      },
+      "id": "9f465e68-acce-4700-904a-e4f584ec33dd",
+      "name": "Recalcular Totales Tutor Asignacion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        1136
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORES"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_tutor": "={{ $json.id_tutor }}",
+            "total_solicitadas": "={{ $json.total_solicitadas }}",
+            "total_asignadas": "={{ $json.total_asignadas }}",
+            "total_en_curso": "={{ $json.total_en_curso }}",
+            "total_finalizadas": "={{ $json.total_finalizadas }}",
+            "total_canceladas": "={{ $json.total_canceladas }}"
+          },
+          "schema": [
+            {
+              "id": "id_tutor",
+              "displayName": "id_tutor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_solicitadas",
+              "displayName": "total_solicitadas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "total_asignadas",
+              "displayName": "total_asignadas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "total_en_curso",
+              "displayName": "total_en_curso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "total_finalizadas",
+              "displayName": "total_finalizadas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "total_canceladas",
+              "displayName": "total_canceladas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_tutor"
+          ]
+        },
+        "options": {}
+      },
+      "id": "34524e0a-450a-4640-b867-8abc22918823",
+      "name": "Actualizar Totales Tutor",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        944
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORIAS"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_tutoria": "={{ $json.actionData.id_tutoria }}",
+            "estado": "Cancelada"
+          },
+          "schema": [
+            {
+              "id": "id_tutoria",
+              "displayName": "id_tutoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_tutor",
+              "displayName": "id_tutor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_materia",
+              "displayName": "id_materia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "motivo",
+              "displayName": "motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "tema",
+              "displayName": "tema",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "hora_inicio",
+              "displayName": "hora_inicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "hora_fin",
+              "displayName": "hora_fin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha_solicitud",
+              "displayName": "fecha_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha_asignacion",
+              "displayName": "fecha_asignacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_tutoria"
+          ]
+        },
+        "options": {}
+      },
+      "id": "cc5e1719-e3b0-4913-8aa0-13801b2728a4",
+      "name": "Cancelar Tutoria Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        896
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fc",
+              "leftValue": "={{ $('Logica Bot').first().json.action }}",
+              "rightValue": "cancelarTutoria",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ea2d6246-e005-4e30-9936-590f3877b4ec",
+      "name": "Solo Cancelada",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        448,
+        1472
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Logica Bot').first().json.actionData.tutorChatId }}",
+        "text": "={{ \"❌ Tutoría cancelada\\n\\n📚 \" + $('Logica Bot').first().json.actionData.materia + \"\\n📅 \" + $('Logica Bot').first().json.actionData.fecha + \"\\n🕙 \" + $('Logica Bot').first().json.actionData.horario + \"\\n\\nEste horario vuelve a estar disponible.\" }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "af3f3329-4a6c-482d-8a7e-c1d7b61e6d3d",
+      "name": "Notificar Tutor Cancelacion",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        864
+      ],
+      "webhookId": "b1458179-c3db-4d47-a193-a251546dfd7a",
+      "credentials": {
+        "telegramApi": {
+          "id": "l1Rouv5aF0hl7Yk4",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "id": "fcf8c7f2-507b-4c72-bdc1-b4bb6038a31a",
+      "name": "Limit Tutor Cancelacion",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        896,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst idTutoria = String($('Logica Bot').first().json.actionData.id_tutoria || '');\nconst tutorias = $('Leer Tutorias').all().map(i => i.json).filter(t => String(t.id_tutoria) !== idTutoria);\nconst t0 = $('Leer Tutorias').all().map(i => i.json).find(t => String(t.id_tutoria) === idTutoria);\nconst idTutor = t0 ? String(t0.id_tutor || '') : '';\nif (!idTutor) return [];\nlet sol = 0, asig = 0, cur = 0, fin = 0, can = 0;\nfor (const t of tutorias) {\n  if (String(t.id_tutor) !== idTutor) continue;\n  const e = String(t.estado);\n  if (e === 'Solicitada') sol++;\n  else if (e === 'Asignada' || e === 'Programada') asig++;\n  else if (e === 'En curso') cur++;\n  else if (e === 'Finalizada') fin++;\n  else if (e === 'Cancelada') can++;\n}\ncan++;\nreturn [{ json: { id_tutor: idTutor, total_solicitadas: sol, total_asignadas: asig, total_en_curso: cur, total_finalizadas: fin, total_canceladas: can } }];\n"
+      },
+      "id": "8bab1110-0ed8-4198-aa5f-7322534699e0",
+      "name": "Recalcular Totales Tutor Cancelacion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        1328
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORES"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_tutor": "={{ $json.id_tutor }}",
+            "total_solicitadas": "={{ $json.total_solicitadas }}",
+            "total_asignadas": "={{ $json.total_asignadas }}",
+            "total_en_curso": "={{ $json.total_en_curso }}",
+            "total_finalizadas": "={{ $json.total_finalizadas }}",
+            "total_canceladas": "={{ $json.total_canceladas }}"
+          },
+          "schema": [
+            {
+              "id": "id_tutor",
+              "displayName": "id_tutor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_solicitadas",
+              "displayName": "total_solicitadas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "total_asignadas",
+              "displayName": "total_asignadas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "total_en_curso",
+              "displayName": "total_en_curso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "total_finalizadas",
+              "displayName": "total_finalizadas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "total_canceladas",
+              "displayName": "total_canceladas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_tutor"
+          ]
+        },
+        "options": {}
+      },
+      "id": "57930619-0165-4119-ab22-d0d304892b60",
+      "name": "Actualizar Totales Tutor Cancelacion",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        1120
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ESTUDIANTES"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_estudiante": "={{ $json.actionData.id_estudiante }}",
+            "nombre": "={{ $json.actionData.nombre }}",
+            "cedula": "={{ $json.actionData.cedula }}",
+            "correo": "={{ $json.actionData.correo }}",
+            "telegram_id": "={{ $json.actionData.telegram_id }}",
+            "estado": "={{ $json.actionData.estado }}"
+          },
+          "schema": [
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "cedula",
+              "displayName": "cedula",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_estudiante"
+          ]
+        },
+        "options": {}
+      },
+      "id": "50d4c248-2ffa-4fcb-b46b-461565531383",
+      "name": "Actualizar Perfil",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        1088
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "CALIFICACIONES"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_calificacion": "={{ $json.actionData.calificacion.id_calificacion }}",
+            "id_tutoria": "={{ $json.actionData.calificacion.id_tutoria }}",
+            "id_estudiante": "={{ $json.actionData.calificacion.id_estudiante }}",
+            "id_tutor": "={{ $json.actionData.calificacion.id_tutor }}",
+            "valoracion": "={{ $json.actionData.calificacion.valoracion }}",
+            "comentario": "={{ $json.actionData.calificacion.comentario }}",
+            "fecha_calificacion": "={{ $json.actionData.calificacion.fecha_calificacion }}"
+          },
+          "schema": [
+            {
+              "id": "id_calificacion",
+              "displayName": "id_calificacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_tutoria",
+              "displayName": "id_tutoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_tutor",
+              "displayName": "id_tutor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "valoracion",
+              "displayName": "valoracion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "comentario",
+              "displayName": "comentario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha_calificacion",
+              "displayName": "fecha_calificacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_calificacion"
+          ]
+        },
+        "options": {}
+      },
+      "id": "797d36f7-a0cf-4322-9c78-925eae0b6e8d",
+      "name": "Guardar Calificacion",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        1280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Entrada": {
+      "main": [
+        [
+          {
+            "node": "Leer Sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Sesion": {
+      "main": [
+        [
+          {
+            "node": "Cargar Sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar Sesion": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Leer Tutores",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Leer Materias",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Leer Disponibilidad",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Leer Tutorias",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Logica Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logica Bot": {
+      "main": [
+        [
+          {
+            "node": "Router Acciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router Acciones": {
+      "main": [
+        [
+          {
+            "node": "Guardar Estudiante",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Vincular Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear Tutoria",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear Tutoria",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancelar Tutoria Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Actualizar Perfil",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Guardar Calificacion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Guardar Sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Estudiante": {
+      "main": [
+        [
+          {
+            "node": "Guardar Sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Sesion": {
+      "main": [
+        [
+          {
+            "node": "Responder Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vincular Telegram": {
+      "main": [
+        [
+          {
+            "node": "Guardar Sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Tutoria": {
+      "main": [
+        [
+          {
+            "node": "Guardar Sesion",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Solo Asignada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solo Asignada": {
+      "main": [
+        [
+          {
+            "node": "Notificar Tutor Asignacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notificar Tutor Asignacion": {
+      "main": [
+        [
+          {
+            "node": "Limit Tutor Asignacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit Tutor Asignacion": {
+      "main": [
+        [
+          {
+            "node": "Recalcular Totales Tutor Asignacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recalcular Totales Tutor Asignacion": {
+      "main": [
+        [
+          {
+            "node": "Actualizar Totales Tutor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelar Tutoria Sheet": {
+      "main": [
+        [
+          {
+            "node": "Guardar Sesion",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Solo Cancelada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solo Cancelada": {
+      "main": [
+        [
+          {
+            "node": "Notificar Tutor Cancelacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notificar Tutor Cancelacion": {
+      "main": [
+        [
+          {
+            "node": "Limit Tutor Cancelacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit Tutor Cancelacion": {
+      "main": [
+        [
+          {
+            "node": "Recalcular Totales Tutor Cancelacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recalcular Totales Tutor Cancelacion": {
+      "main": [
+        [
+          {
+            "node": "Actualizar Totales Tutor Cancelacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar Perfil": {
+      "main": [
+        [
+          {
+            "node": "Guardar Sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Calificacion": {
+      "main": [
+        [
+          {
+            "node": "Guardar Sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "41671bda-38d3-4d9a-8aa2-407cda161714",
+  "meta": {
+    "instanceId": "363704f9db5f1a97c9260bfc40c3fcfbd25969b9d93ae82852a647f71591e4eb"
+  },
+  "nodeGroups": [],
+  "id": "hxemHCLVZFusVCOL",
+  "tags": []
+}

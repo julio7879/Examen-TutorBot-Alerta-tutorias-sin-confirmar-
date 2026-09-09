@@ -1,0 +1,635 @@
+{
+  "name": "TutorBot - Recordatorios y Estados",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "ef5c139c-e184-4880-b85f-bda9f14b4440",
+      "name": "Cada 15 Minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -896,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORIAS"
+        },
+        "options": {}
+      },
+      "id": "e8ae97c1-d36e-4524-956c-e3f92a2bd710",
+      "name": "Leer Tutorias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ESTUDIANTES"
+        },
+        "options": {}
+      },
+      "id": "9b4c92df-06fc-4c78-88bf-be2145ae5a9b",
+      "name": "Leer Estudiantes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        288
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORES"
+        },
+        "options": {}
+      },
+      "id": "a2970000-dbd2-478c-be1b-54e74cdfa260",
+      "name": "Leer Tutores",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        480
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MATERIAS"
+        },
+        "options": {}
+      },
+      "id": "869ed2d7-bfa7-45ff-bf8c-309d03efb43b",
+      "name": "Leer Materias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        672
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "CALIFICACIONES"
+        },
+        "options": {}
+      },
+      "id": "f1f641c1-2ce7-41ba-a1ed-ceb755c69085",
+      "name": "Leer Calificaciones",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        864
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst tutorias = $('Leer Tutorias').all().map(i => i.json);\nconst estudiantes = $('Leer Estudiantes').all().map(i => i.json);\nconst tutores = $('Leer Tutores').all().map(i => i.json);\nconst materiasRows = $('Leer Materias').all().map(i => i.json);\nconst calificaciones = $('Leer Calificaciones').all().map(i => i.json).filter(c => c && c.id_tutoria);\n\nconst nombreMateria = id => { const m = materiasRows.find(x => String(x.id_materia) === String(id)); return m ? (m.nombre || m.materia || '') : String(id); };\nconst estudiantePorId = id => estudiantes.find(e => String(e.id_estudiante) === String(id));\nconst tutorPorId = id => tutores.find(t => String(t.id_tutor) === String(id));\n\nconst ahora = new Date();\n\nconst parseFechaHora = (fecha, hora) => {\n  try {\n    const p = String(fecha).split('/');\n    const d = new Date(p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0') + 'T' + String(hora).trim() + ':00');\n    return isNaN(d.getTime()) ? null : d;\n  } catch (e) { return null; }\n};\n\nconst minutosHasta = d => d ? (d.getTime() - ahora.getTime()) / 60000 : null;\n\nconst out = [];\n\nfor (const t of tutorias) {\n  const estado = String(t.estado || '');\n  const inicio = parseFechaHora(t.fecha, t.hora_inicio);\n  const fin = parseFechaHora(t.fecha, t.hora_fin);\n  if (!inicio || !fin) continue;\n\n  const minInicio = minutosHasta(inicio);\n  const minFin = minutosHasta(fin);\n  const est = estudiantePorId(t.id_estudiante);\n  const tut = tutorPorId(t.id_tutor);\n  const materia = nombreMateria(t.id_materia);\n  const yaCalificada = calificaciones.some(c => String(c.id_tutoria) === String(t.id_tutoria));\n\n  const base = {\n    id_tutoria: t.id_tutoria,\n    id_estudiante: t.id_estudiante,\n    id_tutor: t.id_tutor,\n    id_materia: t.id_materia,\n    motivo: t.motivo || '',\n    tema: t.tema || '',\n    fecha: t.fecha,\n    hora_inicio: t.hora_inicio,\n    hora_fin: t.hora_fin,\n    estado,\n    fecha_solicitud: t.fecha_solicitud || '',\n    fecha_asignacion: t.fecha_asignacion || '',\n    materia,\n    estudianteNombre: est ? est.nombre : '',\n    estudianteChatId: est ? String(est.telegram_id || '') : '',\n    tutorNombre: tut ? tut.nombre : '',\n    tutorChatId: tut ? String(tut.telegram_id || '') : '',\n  };\n\n  if (estado === 'Asignada') {\n    const r24 = String(t.recordatorio_24h_enviado || '').toLowerCase() === 'true';\n    const r1 = String(t.recordatorio_1h_enviado || '').toLowerCase() === 'true';\n    if (!r24 && minInicio > 60 && minInicio <= 24 * 60) {\n      out.push({ json: { ...base, accion: 'recordatorio', tipo: '24h', recordatorio_24h_enviado: 'true', recordatorio_1h_enviado: t.recordatorio_1h_enviado || '' } });\n    } else if (!r1 && minInicio > 0 && minInicio <= 60) {\n      out.push({ json: { ...base, accion: 'recordatorio', tipo: '1h', recordatorio_24h_enviado: t.recordatorio_24h_enviado || 'true', recordatorio_1h_enviado: 'true' } });\n    } else if (minInicio <= 0 && minFin > 0) {\n      out.push({ json: { ...base, accion: 'enCurso', nuevoEstado: 'En curso' } });\n    }\n  } else if (estado === 'En curso' && minFin <= 0) {\n    out.push({ json: { ...base, accion: 'finalizar', nuevoEstado: 'Finalizada', yaCalificada } });\n  }\n}\n\nreturn out;\n"
+      },
+      "id": "7927602c-f19a-4d5a-80df-947d9229fafe",
+      "name": "Procesar Recordatorios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TUTORIAS"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_tutoria": "={{ $json.id_tutoria }}",
+            "estado": "={{ $json.accion === \"recordatorio\" ? $json.estado : $json.nuevoEstado }}",
+            "recordatorio_24h_enviado": "={{ $json.recordatorio_24h_enviado || \"\" }}",
+            "recordatorio_1h_enviado": "={{ $json.recordatorio_1h_enviado || \"\" }}"
+          },
+          "schema": [
+            {
+              "id": "id_tutoria",
+              "displayName": "id_tutoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_tutor",
+              "displayName": "id_tutor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_materia",
+              "displayName": "id_materia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "motivo",
+              "displayName": "motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "tema",
+              "displayName": "tema",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "hora_inicio",
+              "displayName": "hora_inicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "hora_fin",
+              "displayName": "hora_fin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha_solicitud",
+              "displayName": "fecha_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fecha_asignacion",
+              "displayName": "fecha_asignacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "recordatorio_24h_enviado",
+              "displayName": "recordatorio_24h_enviado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "recordatorio_1h_enviado",
+              "displayName": "recordatorio_1h_enviado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "id_tutoria"
+          ]
+        },
+        "options": {}
+      },
+      "id": "3a36e5be-b26e-42de-95a7-3bc01284b6c4",
+      "name": "Actualizar Tutoria",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -224,
+        96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.estudianteChatId }}",
+        "text": "={{ $json.accion === \"recordatorio\" ? (\"⏰ Recordatorio de tutoría (\" + $json.tipo + \")\\n\\n📚 \" + $json.materia + \"\\n👩‍🏫 Tutor: \" + $json.tutorNombre + \"\\n📅 \" + $json.fecha + \"\\n🕙 \" + $json.hora_inicio + \"-\" + $json.hora_fin) : ($json.accion === \"enCurso\" ? (\"🔵 Tu tutoría está en curso\\n\\n📚 \" + $json.materia + \"\\n👩‍🏫 Tutor: \" + $json.tutorNombre + \"\\n🕙 \" + $json.hora_inicio + \"-\" + $json.hora_fin) : (\"✅ Tutoría finalizada\\n\\n📚 \" + $json.materia + \"\\n👩‍🏫 Tutor: \" + $json.tutorNombre + \"\\n\\n¿Cómo fue tu experiencia? Califica de 1 a 5 estrellas o escribe Omitir.\")) }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "85975f63-61b3-4163-8481-0c25ea07a419",
+      "name": "Notificar Estudiante",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "58d980dd-7594-4bed-9931-0ba502a167ed",
+      "credentials": {
+        "telegramApi": {
+          "id": "l1Rouv5aF0hl7Yk4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.tutorChatId }}",
+        "text": "={{ $json.accion === \"recordatorio\" ? (\"⏰ Recordatorio de tutoría (\" + $json.tipo + \")\\n\\n📚 \" + $json.materia + \"\\n👤 Estudiante: \" + $json.estudianteNombre + \"\\n📅 \" + $json.fecha + \"\\n🕙 \" + $json.hora_inicio + \"-\" + $json.hora_fin) : ($json.accion === \"enCurso\" ? (\"🔵 Tutoría en curso\\n\\n📚 \" + $json.materia + \"\\n👤 Estudiante: \" + $json.estudianteNombre + \"\\n🕙 \" + $json.hora_inicio + \"-\" + $json.hora_fin) : (\"✅ Tutoría finalizada\\n\\n📚 \" + $json.materia + \"\\n👤 Estudiante: \" + $json.estudianteNombre)) }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a76d3498-106e-4f7f-b7f0-3c603749c033",
+      "name": "Notificar Tutor",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        192
+      ],
+      "webhookId": "bc020236-34af-49eb-9a24-cd0e1b4cae06",
+      "credentials": {
+        "telegramApi": {
+          "id": "l1Rouv5aF0hl7Yk4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f2",
+              "leftValue": "={{ $json.accion }}",
+              "rightValue": "finalizar",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "62c795a1-bd4c-485c-8c96-7f7a7deec272",
+      "name": "Solo Finalizar",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        0,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Wxk4xXeFsbtHKQvN1rkLnQwJvm6s3I1iKjRKpRfLDqQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "SESIONES_BOT"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $json.accion === \"finalizar\" ? $json.estudianteChatId : \"__skip__\" }}",
+            "paso": "esperando_calificacion",
+            "datos": "={{ JSON.stringify({ calificando_id: $json.id_tutoria }) }}",
+            "id_estudiante": "={{ $json.id_estudiante }}"
+          },
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "paso",
+              "displayName": "paso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "datos",
+              "displayName": "datos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "id_estudiante",
+              "displayName": "id_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": [
+            "telegram_id"
+          ]
+        },
+        "options": {}
+      },
+      "id": "fd37679f-6369-47b3-80af-ae1704caa6bb",
+      "name": "Marcar Sesion Calificacion",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        624
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "G8FwjPTV7XlGnJYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cada 15 Minutos": {
+      "main": [
+        [
+          {
+            "node": "Leer Tutorias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Tutorias": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Estudiantes": {
+      "main": [
+        [
+          {
+            "node": "Leer Tutores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Tutores": {
+      "main": [
+        [
+          {
+            "node": "Leer Materias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Materias": {
+      "main": [
+        [
+          {
+            "node": "Leer Calificaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Calificaciones": {
+      "main": [
+        [
+          {
+            "node": "Procesar Recordatorios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar Recordatorios": {
+      "main": [
+        [
+          {
+            "node": "Actualizar Tutoria",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notificar Estudiante",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notificar Tutor",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Solo Finalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solo Finalizar": {
+      "main": [
+        [
+          {
+            "node": "Marcar Sesion Calificacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "c0aef4ea-a1fd-46eb-8c41-dd9c15bf9c6c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "363704f9db5f1a97c9260bfc40c3fcfbd25969b9d93ae82852a647f71591e4eb"
+  },
+  "nodeGroups": [],
+  "id": "CPgTvlGtNhFmXwHR",
+  "tags": []
+}
